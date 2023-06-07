@@ -11,6 +11,8 @@ from django.db.models import Q
 from users.userSerializers import UserSerializer, admin_userSerializer, CashierSerializer
 from datetime import datetime
 from rest_framework import status
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 import keys
 
@@ -18,6 +20,25 @@ import keys
 JWT_SECRET_user = 'SmartCheckoutretail'
 JWT_SECRET_admin = 'SmartCheckoutadmin'
 JWT_SECRET_cashier = 'SmartCheckoutcashier'
+
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['username', 'password'],
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING, description='Enter your username'),
+            'email':openapi.Schema(type=openapi.TYPE_STRING,description='Enter you email'),
+            'password': openapi.Schema(type=openapi.TYPE_STRING, description='Enter your password')
+        },
+    ),
+    responses={
+        201: 'Created',
+        400: 'Bad Request'
+    },
+    operation_summary='SigUup for new User',
+    operation_description='API endpoint to signup a new user'
+)
 
 # Create your views here.
 @api_view(['POST'])
@@ -119,6 +140,26 @@ def signup(request):
             return JsonResponse(status=500, data={'error': str(e)})
 
     return JsonResponse(status= 400, data = {'error' : "Couldn't signup"})
+
+
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['username', 'password'],
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING, description='Enter your username'),
+            'email':openapi.Schema(type=openapi.TYPE_STRING,description='Enter you email'),
+            'password': openapi.Schema(type=openapi.TYPE_STRING, description='Enter your password')
+        },
+    ),
+    responses={
+        201: 'Created',
+        400: 'Bad Request'
+    },
+    operation_summary='SigUup for new User',
+    operation_description='API endpoint to signup a new user'
+)
 
 
 @api_view(['POST'])

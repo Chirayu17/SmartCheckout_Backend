@@ -30,7 +30,7 @@ class TokenAuthentication(BaseAuthentication):
         return (data['phoneNumber'], None)
     
 
-class AuthorPermission(BasePermission):
+class AdminPermission(BasePermission):
     def has_permission(self, request, view):
         
         auth_header = request.headers.get('Authorization')
