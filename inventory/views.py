@@ -144,8 +144,12 @@ class ProductView(APIView):
             
             if not image_data:
                     return HttpResponseBadRequest("Empty decoded image data")
-            print("image_data->", image_data)
-            print("type of image->", type(image_data))
+            # print("image_data->", image_data)
+            # img_file = open('Grapefruit.jpeg', 'wb')
+            # img_file.write(image_data)
+            # img_file.close()
+            # print("type of image->", type(image_data))
+
 
             product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : image_data,  "categories": [subcategory]}
             serializer = ProductSerializer(data = product_data)
@@ -203,7 +207,7 @@ class ProductView(APIView):
             if 'quantity' in request_data:
                 product_data['quantity'] = request_data['quantity']
             if 'price' in request_data:
-                product_data['quantity'] = request_data['price']
+                product_data['price'] = request_data['price']
                 
 
             if 'image' in request_data:
