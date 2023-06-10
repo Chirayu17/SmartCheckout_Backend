@@ -1,8 +1,6 @@
 from django.db import models
 
-# Create your models here.
 
-#Creating users and their orders
 class Cashier(models.Model):
     id = models.AutoField(primary_key= True)
     name = models.CharField(max_length=255,null = False)
@@ -16,11 +14,10 @@ class Cashier(models.Model):
 
 #retail user
 class User(models.Model):
-    id = models.AutoField(primary_key= True)
     name = models.CharField(max_length=255,null = False)
-    phoneNumber = models.CharField(max_length = 10,unique= True)
+    phoneNumber = models.CharField(max_length = 10,unique= True, primary_key= True)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.CharField(max_length=255,null = False)
+    # created_by = models.CharField(max_length=255,null = False)
     isActive = models.BooleanField(null= False, default=True)
 
 #access to inventory

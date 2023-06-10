@@ -30,5 +30,5 @@ urlpatterns = [
     path('signup/', include('users.userUrls')),
     path('auth/', include('users.userUrls')),
     path('inventory/', include('inventory.productUrls')),
-
+    path('orders/', include('orders.orderUrls'))
 ]

@@ -7,7 +7,6 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import  authentication_classes,permission_classes
 from inventory.productSerializers import ProductSerializer, CategorySerializer
-import keys
 from django.core import serializers as serial
 import datetime
 import base64
