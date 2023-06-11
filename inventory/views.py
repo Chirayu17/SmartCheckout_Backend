@@ -13,6 +13,7 @@ import base64
 import binascii
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+import io
 # Create your views here.
 
 
@@ -134,7 +135,7 @@ class ProductView(APIView):
                 error_message = str(e)
                 return JsonResponse({'error': error_message}, status=500)
             
-            print("type of image before ->", type(request_data["image"]))
+            # print("type of image before ->", type(request_data["image"]))
             
             try:
                 image_data = base64.b64decode(request_data["image"])
@@ -149,8 +150,11 @@ class ProductView(APIView):
             # img_file.close()
             # print("type of image->", type(image_data))
 
+            image_stream = io.BytesIO(image_data)
 
-            product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : image_data,  "categories": [subcategory]}
+
+
+            product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : image_stream,  "categories": [subcategory]}
             serializer = ProductSerializer(data = product_data)
             if serializer.is_valid():
                 product_instance=serializer.save()

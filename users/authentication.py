@@ -24,7 +24,7 @@ class TokenAuthentication(BaseAuthentication):
             return None
 
         try:
-            data = jwt.decode(token, JWT_SECRET_admin, algorithms=['HS256'])
+            data = jwt.decode(token, JWT_SECRET_user, algorithms=['HS256'])
         except jwt.exceptions.InvalidTokenError as e:
             print(e)
             raise AuthenticationFailed('Invalid token')
@@ -44,7 +44,7 @@ class AdminPermission(BasePermission):
             return False
 
         try:
-            jwt.decode(token, JWT_SECRET_admin, algorithms=['HS256'])
+            jwt.decode(token, JWT_SECRET_user, algorithms=['HS256'])
             return True
         except jwt.exceptions.InvalidTokenError:
             return False
