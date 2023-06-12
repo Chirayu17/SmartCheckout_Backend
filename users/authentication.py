@@ -11,7 +11,26 @@ JWT_SECRET_user = 'SmartCheckoutretail'
 
 
 
-class TokenAuthentication(BaseAuthentication):
+class UserTokenAuthentication(BaseAuthentication):
+    def authenticate(self, request): 
+        auth_header = request.headers.get('Authorization')
+        if auth_header is None:
+            raise AuthenticationFailed('User not logged in')
+
+
+        try:
+            token = auth_header.split(' ')[1]
+        except IndexError:
+            return None
+
+        try:
+            data = jwt.decode(token, JWT_SECRET_user, algorithms=['HS256'])
+        except jwt.exceptions.InvalidTokenError as e:
+            print(e)
+            raise AuthenticationFailed('Invalid token')
+        return (data['phoneNumber'], None)
+    
+class AdminTokenAuthentication(BaseAuthentication):
     def authenticate(self, request): 
         auth_header = request.headers.get('Authorization')
         if auth_header is None:

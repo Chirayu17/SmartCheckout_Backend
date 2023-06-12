@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from users.authentication import TokenAuthentication, AdminPermission
+from users.authentication import AdminTokenAuthentication, AdminPermission
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from inventory.models import Category, Product
 import json
@@ -19,7 +19,7 @@ import io
 
 
 class ProductView(APIView):
-    @authentication_classes(TokenAuthentication)
+    @authentication_classes(AdminTokenAuthentication)
     @permission_classes(AdminPermission)
 
     @swagger_auto_schema(
@@ -151,10 +151,10 @@ class ProductView(APIView):
             # print("type of image->", type(image_data))
 
             image_stream = io.BytesIO(image_data)
+            image_binary = image_stream.getvalue()
 
 
-
-            product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : image_stream,  "categories": [subcategory]}
+            product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : base64.b64encode(image_binary).decode("utf-8"),  "categories": [subcategory]}
             serializer = ProductSerializer(data = product_data)
             if serializer.is_valid():
                 product_instance=serializer.save()
@@ -222,6 +222,11 @@ class ProductView(APIView):
                         product_data['image'] = image_data
                 except binascii.Error:
                     return HttpResponseBadRequest("Invalid base64 image")
+                image_stream = io.BytesIO(image_data)
+                image_binary = image_stream.getvalue()
+
+                product_data["image"] = base64.b64encode(image_binary).decode("utf-8")
+
             
             product_data['modified_at'] = datetime.datetime.now()
 

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from users.authentication import TokenAuthentication, UserPermission, AdminPermission
+from users.authentication import UserTokenAuthentication, UserPermission
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from inventory.models import Category, Product
 import json
@@ -22,8 +22,38 @@ from PIL import Image
 
 
 class OrderView(APIView):
-    @authentication_classes(TokenAuthentication)
+    @authentication_classes(UserTokenAuthentication)
     @permission_classes(UserPermission)
+
+
+    def get(self, request, orderID = None):
+        data = {}
+        if orderID is None:
+            orders = Orders.objects.filter(user =  request.user)
+            if not orders:
+                    error_message = "No order found."
+                    return JsonResponse({'error': error_message}, status=404)
+                
+            order_serializer = OrderSerializer(orders, many = True)
+            data = order_serializer.data
+            return JsonResponse(data, content_type='application/json', status=200, safe=False)
+        else:
+            orders = Orders.objects.filter(orderID = orderID,user =  request.user)
+            if not orders:
+                    error_message = "No order found."
+                    return JsonResponse({'error': error_message}, status=404)
+                
+
+            order_serializer = OrderSerializer(orders, many = True)
+
+            data = order_serializer.data
+            orderItems = OrderItem.objects.filter(orderID = data[0]["orderID"])
+
+            orderIten_serializer = OrderItemSerializer(orderItems, many = True)
+            orderItemObject = {"orderItems" :orderIten_serializer.data }
+            data.append(orderItemObject)
+            return JsonResponse(data, content_type='application/json', status=200, safe=False)
+
 
 
     def post(self, request, orderID = None):
@@ -65,7 +95,6 @@ class OrderView(APIView):
                     return HttpResponseBadRequest("Empty decoded image data")
             
             image_stream = io.BytesIO(image_data)
-    
 
             image = Image.open(image_stream)        
             # print("type of img", type(image))
@@ -108,25 +137,60 @@ class OrderView(APIView):
                                             return JsonResponse({'orderDataError': orderItemSerialized.errors})
                                         print( "There are only " + str(data["quantity"]) +  " " + str(data["name"]) + " " + " present in database") 
                                 else:
-                                    print("in not found else")
+                                   
                                     orderitem = {"orderID" : order_instance.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : 0, "quantity" : detectedOrder[categories][key], "total" : 0, "unAvailable" : True,"outOfStock" : True, "completed" : False }
                                     orderItemSerialized  = OrderItemSerializer(data = orderitem)
                                     if orderItemSerialized.is_valid():
-                                        print("here in order item serialized")
+                               
                                         orderItem_instance=orderItemSerialized.save()
                                         orderItemData = serial.serialize('json', [orderItem_instance,])
                                         order_items["unavailable"] = json.loads(orderItemData)
                                     else:
-                                        print({'orderDataError' : orderItemSerialized.errors})
+                                    
                                         return JsonResponse({'orderDataError': orderItemSerialized.errors})
-                                    print({key : "product not found in database"})
+                                  
                             except Exception as e:
                                 error_message = str(e)
                                 print({'product' : error_message})
                                 # return JsonResponse({'error': error_message}, status=500)
-        print("orderItems->", order_items)
-        data["orderItems"] = order_items
-        return JsonResponse({"data": data}, status = 200)
+            print("orderItems->", order_items)
+            data["orderItems"] = order_items
+            return JsonResponse({"data": data}, status = 200)
+        
+        else:
+            request_data = json.loads(request.body)
+            try:
+                orderObject = Orders.objects.get(orderID = orderID)
+                if orderObject:
+                     if "image" in request_data:
+                        try:
+                            image_data = base64.b64decode(request_data["image"])
+                        except binascii.Error:
+                            return HttpResponseBadRequest("Invalid base64 image")
+            
+                        if not image_data:
+                                return HttpResponseBadRequest("Empty decoded image data")
+            
+                        image_stream = io.BytesIO(image_data)
+
+                        image = Image.open(image_stream)        
+                        converted_image = image.convert("RGB")
+
+                        detectedOrder = ImageDetection(converted_image)
+                        if detectedOrder:
+
+                            return JsonResponse({"image" :  request_data["image"]}, status = 200)
+                order_serializer = OrderSerializer(instance = orderObject)
+                orderdata = order_serializer.data
+            except Exception as e:
+                        error_message = str(e)
+                        return JsonResponse({'orderError': error_message}, status=500)
+            
+            return JsonResponse({"data": "data"}, status = 200)
+    # return JsonResponse({"data": data}, status = 200)
+    
             
 
-
+    def put(self, request, orderID = None):
+         
+         return JsonResponse({"data" : "data"}, status = 200)
