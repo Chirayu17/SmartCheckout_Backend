@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'inventory',
-    'orders'
+    'orders',
+    'payments'
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True

@@ -114,9 +114,9 @@ def signup(request):
             required_fields = set(['name','phoneNumber', 'created_by'])
             if not required_fields.issubset(data.keys()):
                 return JsonResponse(status=400, data={'error': 'Missing required fields'})
-            existing_user = User.objects.filter(Q(phoneNumber=data['phoneNumber']) | Q(name=data['name']))
+            existing_user = User.objects.filter(phoneNumber=data['phoneNumber'])
             if existing_user:
-                return JsonResponse(status=409, data={'error': 'User with the same phone number or email already exists'})
+                return JsonResponse(status=409, data={'error': 'User with the same phone number already exists'})
     
             userData = {
                 'name': data['name'],
@@ -168,7 +168,7 @@ def signup(request):
 
 def login(request):
 
-    if request.path == '/auth/loginUser': 
+    if request.path == '/auth/user/login': 
         print("here in loginUser")
         try:
             data = request.data if request.data is not None else {}
@@ -188,7 +188,7 @@ def login(request):
         except Exception as e:
             return JsonResponse(status=500, data={'error': str(e)}) 
 
-    elif request.path == '/auth/loginAdmin': 
+    elif request.path == '/auth/admin/login': 
         try:
             data = request.data if request.data is not None else {}
             required_fields = set(['password', 'phoneNumber'])
@@ -204,7 +204,7 @@ def login(request):
         except Exception as e:
             return JsonResponse(status=500, data={'error': str(e)})
         
-    elif request.path == '/auth/loginCashier': 
+    elif request.path == '/auth/cashier/login': 
         try:
             data = request.data if request.data is not None else {}
             required_fields = set(['password', 'phoneNumber'])

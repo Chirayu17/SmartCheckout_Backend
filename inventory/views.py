@@ -47,7 +47,7 @@ class ProductView(APIView):
         }
     )
 
-    def get(self, request, category_name = None, subCategory_name = None):
+    def get(self, request, categoryName = None, subCategoryName = None):
         if request.path == '/inventory/category':
             try:
                 categories = Category.objects.all()
@@ -64,9 +64,9 @@ class ProductView(APIView):
                 return JsonResponse({'error': error_message}, status=500)
 
         
-        elif category_name is not None:
+        elif categoryName is not None:
             try:
-                category = Category.objects.filter(parent_category =category_name)
+                category = Category.objects.filter(parent_category =categoryName)
                 if not category:
                     error_message = "No categories found."
                     return JsonResponse({'error': error_message}, status=404)
@@ -78,9 +78,9 @@ class ProductView(APIView):
                 error_message = str(e)
                 return JsonResponse({'error': error_message}, status=500)
         
-        elif subCategory_name is not None:
+        elif subCategoryName is not None:
             try:
-                product = Product.objects.filter(categories = subCategory_name)
+                product = Product.objects.filter(categories = subCategoryName)
                 if not product:
                     error_message = "No product found."
                     return JsonResponse({'error': error_message}, status=404)
@@ -94,7 +94,7 @@ class ProductView(APIView):
 
         
     
-    def post(self, request, category_name = None, subCategory_name = None):
+    def post(self, request, categoryName = None, subCategoryName = None):
         data = {}
         if request.path == '/inventory/category':
             request_data = json.loads(request.body)
@@ -108,10 +108,10 @@ class ProductView(APIView):
                 return JsonResponse({'error': serializer.error})
             return JsonResponse({"data" : data})
         
-        elif category_name is not None:
+        elif categoryName is not None:
 
             request_data = json.loads(request.body)
-            category = Category.objects.get(name = category_name)
+            category = Category.objects.get(name = categoryName)
             print(category)
             subcategory_data = {"name" : request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "isActive" : request_data["isActive"], "parent_category" : category}
             
@@ -123,11 +123,11 @@ class ProductView(APIView):
                 return JsonResponse({'error': serializer.error})
             return JsonResponse({"data" : data})
         
-        elif subCategory_name is not None:
-            print("subcategory name->", subCategory_name)
+        elif subCategoryName is not None:
+            print("subcategory name->", subCategoryName)
             request_data = json.loads(request.body)
             try:
-                subcategory = Category.objects.get(name = subCategory_name)
+                subcategory = Category.objects.get(name = subCategoryName)
                 if not subcategory:
                     error_message = "No categories found."
                     return JsonResponse({'error': error_message}, status=404)
@@ -166,11 +166,11 @@ class ProductView(APIView):
         return JsonResponse({"data" : data})
     
     
-    def put(self, request, category_name = None, product_name = None):
+    def put(self, request, categoryName = None, productName = None):
         data = {}
-        if category_name is not None:
+        if categoryName is not None:
             try:
-                category_instance = Category.objects.get(name=category_name)
+                category_instance = Category.objects.get(name=categoryName)
             except Category.DoesNotExist:
                 return JsonResponse({'error': 'Category not found.'}, status=404)
 
@@ -194,9 +194,9 @@ class ProductView(APIView):
                 return JsonResponse({'error': serializer.errors}, status=400)
        
     
-        elif product_name is not None:
+        elif productName is not None:
             try:
-                product_instance = Product.objects.get(name=product_name)
+                product_instance = Product.objects.get(name=productName)
             except Product.DoesNotExist:
                 return JsonResponse({'error': 'Product not found.'}, status=404)
             

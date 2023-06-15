@@ -23,5 +23,11 @@ class OrderItem(models.Model):
     unAvailable = models.BooleanField(default =  False)
     outOfStock = models.BooleanField(default =  False)
     completed = models.BooleanField(default =  False)
+    addedManually = models.BooleanField(default= False)
+    updatedManually = models.BooleanField(default = False)
+    probability =  models.DecimalField(max_digits=10, decimal_places=2, null= True)
+
+
+
 
 

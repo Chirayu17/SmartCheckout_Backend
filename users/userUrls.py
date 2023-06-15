@@ -3,10 +3,13 @@ from django.urls import path
 
 
 urlpatterns = [
-    path('admin_user/', views.signup , name = 'signup'),
+    path('adminUser/', views.signup , name = 'signup'),
     path('cashier/', views.signup, name = 'signup'),
     path('user/', views.signup, name = 'signup'),
-    path('loginUser',views.login, name = 'login'),
-    path('loginAdmin', views.login, name = 'login'),
-    path('loginCashier', views.login, name = 'login')
+    path('user/login',views.login, name = 'login'),
+    path('admin/login', views.login, name = 'login'),
+    path('cashier/login', views.login, name = 'login')
 ]
+
+
+#auth/user/login
