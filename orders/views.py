@@ -62,6 +62,7 @@ class OrderView(APIView):
     def post(self, request, orderID = None):
 
         try:
+            print("user->" , request.user)
             userObject = User.objects.get(phoneNumber = request.user)
             user_serializer = UserSerializer(instance = userObject)
             userdata = user_serializer.data
@@ -93,10 +94,10 @@ class OrderView(APIView):
             try:
                 image_data = base64.b64decode(request_data["image"])
             except binascii.Error:
-                return HttpResponseBadRequest("Invalid base64 image")
+                return JsonResponse({"error" : "Invalid base64 image"}, status = 400)
             
             if not image_data:
-                    return HttpResponseBadRequest("Empty decoded image data")
+                    return JsonResponse({"error" :"Empty decoded image data"}, status = 400)
             
             image_stream = io.BytesIO(image_data)
 
@@ -105,11 +106,12 @@ class OrderView(APIView):
             converted_image = image.convert("RGB")
             
             detectedOrder = ImageDetection(converted_image)
-            if detectedOrder:
-                data["orderItems"] = createOrderItem(detectedOrder, data, order_instance, userObject, total_price)
-            else:
+            print("detected Order ->", detectedOrder)
+            if not detectedOrder:
                 data["orderItems"] = "Unable to detect items in image. Try it again"
                 return JsonResponse({"data": data}, status = 400)
+            else:
+                data["orderItems"] = createOrderItem(detectedOrder, data, order_instance, userObject, total_price)
             
           
         return JsonResponse({"data" : data}, status = 200)

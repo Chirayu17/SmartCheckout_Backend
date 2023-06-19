@@ -13,6 +13,7 @@ JWT_SECRET_user = 'SmartCheckoutretail'
 
 class UserTokenAuthentication(BaseAuthentication):
     def authenticate(self, request): 
+        print("in user token authentication")
         auth_header = request.headers.get('Authorization')
         if auth_header is None:
             raise AuthenticationFailed('User not logged in')
@@ -32,6 +33,7 @@ class UserTokenAuthentication(BaseAuthentication):
     
 class AdminTokenAuthentication(BaseAuthentication):
     def authenticate(self, request): 
+        print("in admin token authentication")
         auth_header = request.headers.get('Authorization')
         if auth_header is None:
             raise AuthenticationFailed('User not logged in')
@@ -43,7 +45,7 @@ class AdminTokenAuthentication(BaseAuthentication):
             return None
 
         try:
-            data = jwt.decode(token, JWT_SECRET_user, algorithms=['HS256'])
+            data = jwt.decode(token, JWT_SECRET_admin, algorithms=['HS256'])
         except jwt.exceptions.InvalidTokenError as e:
             print(e)
             raise AuthenticationFailed('Invalid token')
@@ -51,6 +53,7 @@ class AdminTokenAuthentication(BaseAuthentication):
     
 
 class AdminPermission(BasePermission):
+    print("in admin permission")
     def has_permission(self, request, view):
         
         auth_header = request.headers.get('Authorization')
@@ -63,13 +66,14 @@ class AdminPermission(BasePermission):
             return False
 
         try:
-            jwt.decode(token, JWT_SECRET_user, algorithms=['HS256'])
+            jwt.decode(token, JWT_SECRET_admin, algorithms=['HS256'])
             return True
         except jwt.exceptions.InvalidTokenError:
             return False
         
 
 class UserPermission(BasePermission):
+    print("in user permission")
     def has_permission(self, request, view):
         
         auth_header = request.headers.get('Authorization')

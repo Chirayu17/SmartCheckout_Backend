@@ -30,9 +30,12 @@ def ImageDetection(image_data):
             fruit_counts[fruit_name] = 0
         fruit_counts[fruit_name] += 1
 
-  
-    for fruit_name, count in fruit_counts.items():
-        detectedData["Fruits"][fruit_name] = count
+    print("fruit_count->", fruit_counts)
+    if not fruit_counts:
+         detectedData = {}
+    else:
+        for fruit_name, count in fruit_counts.items():
+            detectedData["Fruits"][fruit_name] = count
 
     print(detectedData)
     return detectedData

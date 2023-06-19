@@ -10,7 +10,10 @@ import random
 
 def createOrderItem(detectedOrder, data, order_instance, userObject, total_price):
     order_items = {}
-    
+    order_items["available"] = []
+    order_items["outOfStock"] = []
+    order_items["unavailable"] = []
+    data["totalAmount"] = 0
     for categories in detectedOrder:  
         for key in detectedOrder[categories]:
             try:
@@ -22,46 +25,28 @@ def createOrderItem(detectedOrder, data, order_instance, userObject, total_price
                     if productdata["quantity"] >= detectedOrder[categories][key]:
         
                         totalAmount = float(productdata["price"])* float(detectedOrder[categories][key])
-                        print("random value ->" , random.random())
-                        print("random value type->", type(random.random))
-                        total_price += totalAmount
+                        data["totalAmount"] =  data["totalAmount"] + totalAmount
+                       
                         orderitem = {"orderID" : order_instance.pk, "productID" : product.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "unAvailable" : False,"outOfStock" : False, "completed" : True, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0, 1), 2)}
                         orderItemSerialized  = OrderItemSerializer(data = orderitem)
                         if orderItemSerialized.is_valid():
                             orderItem_instance=orderItemSerialized.save()
                             orderItemData = serial.serialize('json', [orderItem_instance,])
-                            # print("orderItemData-->", json.loads(orderItemData))
-                            order_items["available"] = json.loads(orderItemData)
-        
+                            order_items["available"].append(json.loads(orderItemData)[0])
                         else:
                             return JsonResponse({'orderDataError': orderItemSerialized.errors})
 
                     else:
-                        totalAmount = float(productdata["price"])* float(detectedOrder[categories][key])
-                        print("random value ->" , random.random())
-                        print("random value type->", type(random.random))
-                        orderitem = {"orderID" : order_instance.pk, "productID" : product.pk,"productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "unAvailable" : False,"outOfStock" : True, "completed" : False, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0, 1), 2)}
-                        orderItemSerialized  = OrderItemSerializer(data = orderitem)
-                        if orderItemSerialized.is_valid():
-                            orderItem_instance=orderItemSerialized.save()
-                            orderItemData = serial.serialize('json', [orderItem_instance,])
-                            order_items["outOfStock"] = json.loads(orderItemData)
-
-                        else:
-                            return JsonResponse({'orderDataError': orderItemSerialized.errors})
-                        print( "There are only " + str(data["quantity"]) +  " " + str(data["name"]) + " " + " present in database") 
+                        message =  "There are only " + str(productdata["quantity"]) +  " " + str(productdata["name"]) + " " + " present in stock"
+                        orderItem = {}
+                        orderItem[key] = message
+                        order_items["outOfStock"].append(orderItem)
+                       
                 else:
-                    
-                    orderitem = {"orderID" : order_instance.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : 0, "quantity" : detectedOrder[categories][key], "total" : 0, "unAvailable" : True,"outOfStock" : True, "completed" : False, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0, 1), 2)}
-                    orderItemSerialized  = OrderItemSerializer(data = orderitem)
-                    if orderItemSerialized.is_valid():
-                
-                        orderItem_instance=orderItemSerialized.save()
-                        orderItemData = serial.serialize('json', [orderItem_instance,])
-                        order_items["unavailable"] = json.loads(orderItemData)
-                    else:
-                    
-                        return JsonResponse({'orderDataError': orderItemSerialized.errors})
+                    message =  str(key) + " " + " is not in stock. Kindly try again"
+                    orderItem = {}
+                    orderItem[key] = message
+                    order_items["unavailable"].append(orderItem)
                     
             except Exception as e:
                 error_message = str(e)
@@ -72,6 +57,9 @@ def createOrderItem(detectedOrder, data, order_instance, userObject, total_price
 
 def updateOrder(detectedOrder,data, order_instance,userObject, total_price, existingOrderItems):
         order_items = {}
+        order_items["available"] = []
+        order_items["outOfStock"] = []
+        order_items["unavailable"] = []
         
         print("order ->", order_instance)
         print("user->", userObject)
@@ -95,6 +83,7 @@ def updateOrder(detectedOrder,data, order_instance,userObject, total_price, exis
                                     existingOrderObject.save()
                                 else:
                                     error_message = "There are only " + productdata["quantity"] + " in stock."
+                                    
                                     return JsonResponse({"outOfStock" : error_message}, status = 404)
                             else:
                                 if productdata["quantity"] >= detectedOrder[categories][key]:
@@ -111,28 +100,16 @@ def updateOrder(detectedOrder,data, order_instance,userObject, total_price, exis
                                         return JsonResponse({'orderItemDataError': orderItemSerialized.errors})
 
                                 else:
-                                    totalAmount = float(productdata["price"])* float(detectedOrder[categories][key])
-                                    orderitemData = {"orderID" : order_instance.pk, "productID" : product.pk,"productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "unAvailable" : False,"outOfStock" : True, "completed" : False,"addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0, 1), 2) }
-                                    orderItemSerialized  = OrderItemSerializer(data = orderitemData)
-                                    if orderItemSerialized.is_valid():
-                                        orderItem_instance=orderItemSerialized.save()
-                                        orderItemData = serial.serialize('json', [orderItem_instance,])
-                                        order_items["outOfStock"] = json.loads(orderItemData)
-
-                                    else:
-                                        return JsonResponse({'orderDataError': orderItemSerialized.errors})
-                                    print( "There are only " + str(data["quantity"]) +  " " + str(data["name"]) + " " + " present in database") 
+                                      message =  "There are only " + str(productdata["quantity"]) +  " " + str(productdata["name"]) + " " + " present in stock"
+                                      orderItem = {}
+                                      orderItem[key] = message
+                                      order_items["outOfStock"].append(orderItem)
+                                    
                     else: 
-                        orderitem = {"orderID" : order_instance.pk, "productName" : key, "user" : userObject, "created_at" : datetime.datetime.now(), "price" : 0, "quantity" : detectedOrder[categories][key], "total" : 0, "unAvailable" : True,"outOfStock" : True, "completed" : False, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0, 1), 2) }
-                        orderItemSerialized  = OrderItemSerializer(data = orderitem)
-                        if orderItemSerialized.is_valid():
-                    
-                            orderItem_instance=orderItemSerialized.save()
-                            orderItemData = serial.serialize('json', [orderItem_instance,])
-                            order_items["unavailable"] = json.loads(orderItemData)
-                        else:
-                        
-                            return JsonResponse({'orderDataError': orderItemSerialized.errors})
+                        message =  str(key) + " " + " is not in stock. Kindly try again"
+                        orderItem = {}
+                        orderItem[key] = message
+                        order_items["unavailable"].append(orderItem)
                         
                 except Exception as e:
                     error_message = str(e)

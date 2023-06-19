@@ -119,7 +119,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'users.authentication.AdminTokenAuthentication',
+        'users.authentication.UserTokenAuthentication',
+        'users.authentication.AdminTokenAuthentication'
     ]
 }
 
