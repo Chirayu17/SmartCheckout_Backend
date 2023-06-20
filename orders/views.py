@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from users.authentication import UserTokenAuthentication, UserPermission
+from users.authentication import TokenAuthentication, Permission
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from inventory.models import Category, Product
 import json
@@ -25,8 +25,8 @@ import random
 
 
 class OrderView(APIView):
-    @authentication_classes(UserTokenAuthentication)
-    @permission_classes(UserPermission)
+    @authentication_classes(TokenAuthentication)
+    @permission_classes(Permission)
 
 
     def get(self, request, orderID = None):
@@ -104,6 +104,8 @@ class OrderView(APIView):
             image = Image.open(image_stream)        
           
             converted_image = image.convert("RGB")
+            print("type of->", type(converted_image))
+
             
             detectedOrder = ImageDetection(converted_image)
             print("detected Order ->", detectedOrder)
@@ -129,6 +131,7 @@ class OrderView(APIView):
                 data = {}
                 
                 request_data = json.loads(request.body)
+              
                 try:
                     orderObject = Orders.objects.get(orderID = orderID)
                     if orderObject:
@@ -152,7 +155,7 @@ class OrderView(APIView):
 
                             image = Image.open(image_stream)        
                             converted_image = image.convert("RGB")
-
+                            print("type of->", type(converted_image))
                             detectedOrder = ImageDetection(converted_image)
                             
                             if detectedOrder:
@@ -204,7 +207,8 @@ class OrderView(APIView):
                     if serializer.is_valid():
                         product_instance = serializer.save()
                         data = serial.serialize('json', [product_instance,])
-                        return JsonResponse({"data": data})
+                        jsonData = json.loads(data)
+                        return JsonResponse({"data": [jsonData]})
                     else:
                         return JsonResponse({'error': serializer.errors}, status=400)
                 else:

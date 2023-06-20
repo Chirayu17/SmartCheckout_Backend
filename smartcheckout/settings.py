@@ -119,11 +119,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'users.authentication.UserTokenAuthentication',
-        'users.authentication.AdminTokenAuthentication'
+        'users.authentication.TokenAuthentication',
+    ],
+     'DEFAULT_PERMISSION_CLASSES': [
+        'users.authentication.Permission'
     ]
 }
 
+STRIPE_SECRET_KEY = "sk_test_51NKrNJSDd3OclZWtyPfjGxu51hilT0ExTwcOKED9qx5fAroCIfE6fcuj9fuKAc1OsRuC8bekiGG4ALHgj5wgnPy200GoPjsvUl"
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 

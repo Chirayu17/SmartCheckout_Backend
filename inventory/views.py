@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from users.authentication import AdminTokenAuthentication, AdminPermission
+from users.authentication import TokenAuthentication, Permission
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from inventory.models import Category, Product
 import json
@@ -19,8 +19,8 @@ import io
 
 
 class ProductView(APIView):
-    @authentication_classes(AdminTokenAuthentication)
-    @permission_classes(AdminPermission)
+    @authentication_classes(TokenAuthentication)
+    @permission_classes(Permission)
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -140,21 +140,14 @@ class ProductView(APIView):
             try:
                 image_data = base64.b64decode(request_data["image"])
             except binascii.Error:
-                return HttpResponseBadRequest("Invalid base64 image")
+                return JsonResponse({"error" : "Invalid base64 image"}, status = 500)
             
             if not image_data:
-                    return HttpResponseBadRequest("Empty decoded image data")
-            # print("image_data->", image_data)
-            # img_file = open('Grapefruit.jpeg', 'wb')
-            # img_file.write(image_data)
-            # img_file.close()
-            # print("type of image->", type(image_data))
-
-            image_stream = io.BytesIO(image_data)
-            image_binary = image_stream.getvalue()
+                    return JsonResponse({"error" : "Empty decoded image data"}, status = 500)
+         
 
 
-            product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : base64.b64encode(image_binary).decode("utf-8"),  "categories": [subcategory]}
+            product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : image_data,  "categories": [subcategory]}
             serializer = ProductSerializer(data = product_data)
             if serializer.is_valid():
                 product_instance=serializer.save()
@@ -216,25 +209,24 @@ class ProductView(APIView):
             if 'image' in request_data:
                 try:
                     image_data = base64.b64decode(request_data["image"])
-                    if not image_data:
-                        return HttpResponseBadRequest("Empty decoded image data")
-                    else:
-                        product_data['image'] = image_data
                 except binascii.Error:
-                    return HttpResponseBadRequest("Invalid base64 image")
-                image_stream = io.BytesIO(image_data)
-                image_binary = image_stream.getvalue()
+                    return JsonResponse({"error" : "Invalid base64 image"}, status = 500)
+            
+                if not image_data:
+                    return JsonResponse({"error" : "Empty decoded image data"}, status = 500)
+                
 
-                product_data["image"] = base64.b64encode(image_binary).decode("utf-8")
-
+                product_data["image"] = image_data
+                
             
             product_data['modified_at'] = datetime.datetime.now()
-
+            print(product_data)
             serializer = ProductSerializer(instance= product_instance, data= product_data, partial=True)
             if serializer.is_valid():
                 product_instance = serializer.save()
                 data = serial.serialize('json', [product_instance,])
-                return JsonResponse({"data": data})
+                jsonData = json.loads(data)
+                return JsonResponse({"data": jsonData})
             else:
                 return JsonResponse({'error': serializer.errors}, status=400)
 

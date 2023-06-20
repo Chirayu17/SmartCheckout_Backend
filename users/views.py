@@ -17,9 +17,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 
 
-JWT_SECRET_user = 'SmartCheckoutretail'
-JWT_SECRET_admin = 'SmartCheckoutadmin'
-JWT_SECRET_cashier = 'SmartCheckoutcashier'
+JWT_SECRET = 'SmartCheckout'
 
 @swagger_auto_schema(
     method='post',
@@ -46,7 +44,7 @@ JWT_SECRET_cashier = 'SmartCheckoutcashier'
 @authentication_classes([])
 def signup(request):
     
-    if request.path == '/signup/admin_user/': 
+    if request.path == '/signup/admin/': 
         try:
             data = request.data if request.data is not None else {}
             required_fields = set(['name', 'email', 'password', 'phoneNumber',])
@@ -71,7 +69,7 @@ def signup(request):
             else:
                 return JsonResponse({'error': serializer.error})
 
-            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1)}, JWT_SECRET_admin)
+            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'admin'} , JWT_SECRET)
             return JsonResponse(status=status.HTTP_201_CREATED, data={'token': token, 'statusText': 'User Created'})
 
         except Exception as e:
@@ -101,7 +99,7 @@ def signup(request):
             else:
                 return JsonResponse({'error': serializer.error})
 
-            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1)}, JWT_SECRET_cashier)
+            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'cashier'} , JWT_SECRET)
             return JsonResponse(status=status.HTTP_201_CREATED, data={'token': token, 'statusText': 'User Created'})
 
         except Exception as e:
@@ -133,7 +131,7 @@ def signup(request):
                 print("here")
                 return JsonResponse({'error': serializer.errors})
 
-            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1)}, JWT_SECRET_user)
+            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'user'} , JWT_SECRET)
             return JsonResponse(status=status.HTTP_201_CREATED, data={'token': token, 'statusText': 'User Created'})
 
         except Exception as e:
@@ -180,7 +178,7 @@ def login(request):
             try:
                 existing_user = User.objects.get(phoneNumber = data['phoneNumber'])
                 if existing_user :
-                    token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1)}, JWT_SECRET_user)
+                    token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'user'} , JWT_SECRET)
                     return JsonResponse(status=200, data= {'username':existing_user.name, 'token' : token})
             except:
                     print("user not found")
@@ -197,7 +195,7 @@ def login(request):
             user = admin_user.objects.get(phoneNumber= data['phoneNumber'])
             print((user))
             if user and pbkdf2_sha256.verify(data['password'], user.password):
-                token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1)}, JWT_SECRET_admin)
+                token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'admin'} , JWT_SECRET)
                 return JsonResponse(status=200, data={'token': token})
             else:
                 return JsonResponse(status=401, data={'error': 'Invalid phoneNumber or password'})
@@ -213,7 +211,7 @@ def login(request):
             user = Cashier.objects.get(phoneNumber= data['phoneNumber'])
             print((user))
             if user and pbkdf2_sha256.verify(data['password'], user.password):
-                token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1)}, JWT_SECRET_cashier)
+                token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'cashier'} , JWT_SECRET)
                 return JsonResponse(status=200, data={'token': token})
             else:
                 return JsonResponse(status=401, data={'error': 'Invalid phoneNumber or password'})
