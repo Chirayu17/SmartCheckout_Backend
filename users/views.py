@@ -131,7 +131,7 @@ def signup(request):
                 print("here")
                 return JsonResponse({'error': serializer.errors})
 
-            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'user'} , JWT_SECRET)
+            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=5), 'role' : 'user'} , JWT_SECRET)
             return JsonResponse(status=status.HTTP_201_CREATED, data={'token': token, 'statusText': 'User Created'})
 
         except Exception as e:

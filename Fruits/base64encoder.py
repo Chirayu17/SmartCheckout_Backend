@@ -6,7 +6,7 @@ def convert_image_to_base64(image_path):
         return encoded_string.decode('utf-8')
 
 # Set the image file name you want to convert
-image_pathname = "/Users/cgupta/Documents/smartcheckoutv3/SmartCheckout_Backend/Fruits/Apple Fuji (Seb).jpeg"
+image_pathname = "/Users/cgupta/Documents/smartcheckoutv3/SmartCheckout_Backend/Fruits/Pomegranate.jpeg"
 
 # Convert the image to base64
 base64_image = convert_image_to_base64(image_pathname)

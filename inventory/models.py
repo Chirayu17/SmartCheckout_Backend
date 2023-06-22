@@ -16,7 +16,7 @@ class Product(models.Model):
     name = models.CharField(max_length=255, primary_key=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField()
-    image = models.BinaryField()
+    image = models.TextField()
     isActive = models.BooleanField(null= False, default=True)
     created_at = models.DateTimeField(default=timezone.now)
     modified_at = models.DateTimeField(default=timezone.now)

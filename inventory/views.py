@@ -14,6 +14,7 @@ import binascii
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 import io
+import psycopg2
 # Create your views here.
 
 
@@ -137,17 +138,17 @@ class ProductView(APIView):
             
             # print("type of image before ->", type(request_data["image"]))
             
-            try:
-                image_data = base64.b64decode(request_data["image"])
-            except binascii.Error:
-                return JsonResponse({"error" : "Invalid base64 image"}, status = 500)
+            # try:
+            #     image_data = base64.b64decode(request_data["image"])
+            # except binascii.Error:
+            #     return JsonResponse({"error" : "Invalid base64 image"}, status = 500)
             
-            if not image_data:
-                    return JsonResponse({"error" : "Empty decoded image data"}, status = 500)
+            # if not image_data:
+            #         return JsonResponse({"error" : "Empty decoded image data"}, status = 500)
          
 
 
-            product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : image_data,  "categories": [subcategory]}
+            product_data = {"name": request_data["name"], "created_at": datetime.datetime.now(), "modified_at": datetime.datetime.now(), "price" : request_data["price"], "quantity" : request_data["quantity"], "isActive": request_data["isActive"], "image" : request_data["image"],  "categories": [subcategory]}
             serializer = ProductSerializer(data = product_data)
             if serializer.is_valid():
                 product_instance=serializer.save()
@@ -208,22 +209,39 @@ class ProductView(APIView):
 
             if 'image' in request_data:
                 try:
-                    image_data = base64.b64decode(request_data["image"])
+                    product_data["image"] = request_data["image"]
                 except binascii.Error:
                     return JsonResponse({"error" : "Invalid base64 image"}, status = 500)
             
-                if not image_data:
-                    return JsonResponse({"error" : "Empty decoded image data"}, status = 500)
+                # if not image_data:
+                #     return JsonResponse({"error" : "Empty decoded image data"}, status = 500)
                 
-
-                product_data["image"] = image_data
-                
-            
+      
+                # product_data["image"] = psycopg2.Binary(image_data)
+            # print(product_data["image"])
             product_data['modified_at'] = datetime.datetime.now()
-            print(product_data)
+            print("product_data ->", product_data)
+            # try:
+            #     Product.objects.filter(name=productName).update(modified_at=product_data['modified_at'], image = product_data["image"])
+            # except Exception as e:
+            #     return JsonResponse({"error" : e}, status = 500)
+            
+            # try:
+            #     updated_instance = Product.objects.get(name=productName)
+            # except Exception as e:
+            #     return JsonResponse({"error" : e}, status = 500)
+
+            # # Check if the instance has been updated
+            # if updated_instance.modified_at == product_data['modified_at'] and updated_instance.image == product_data["image"]:
+            #     print("Instance has been successfully updated!")
+            # else:
+            #     print("Instance update failed!")
+
             serializer = ProductSerializer(instance= product_instance, data= product_data, partial=True)
             if serializer.is_valid():
-                product_instance = serializer.save()
+                print("serialized_data->", serializer.validated_data)
+                if serializer.is_valid():
+                    product_instance = serializer.save()
                 data = serial.serialize('json', [product_instance,])
                 jsonData = json.loads(data)
                 return JsonResponse({"data": jsonData})
