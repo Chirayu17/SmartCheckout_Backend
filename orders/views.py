@@ -106,6 +106,7 @@ class OrderView(APIView):
             converted_image = image.convert("RGB")
             print("type of->", type(converted_image))
 
+
             
             detectedOrder = ImageDetection(converted_image)
             print("detected Order ->", detectedOrder)
@@ -126,10 +127,10 @@ class OrderView(APIView):
             return JsonResponse({'orderError': error_message}, status=500)
 
         else:
+            request_data = json.loads(request.body)
             if orderItemID is None:
                 data = {}
                 
-                request_data = json.loads(request.body)
                 try:
                     orderObject = Orders.objects.get(orderID = orderID)
                     if orderObject: 
@@ -189,24 +190,7 @@ class OrderView(APIView):
                                 orderItem[productdata["name"]] = message
                                 data["outOfStock"] = orderItem
                    
-                        else:
-                            orderItemData = json.loads(request.body)
-                            productObject = Product.objects.get(name = orderItemData["productID"])
-                            if productObject.quantity>= orderItemData["quantity"]:
-                                orderItem =  OrderItem.objects.get(id = orderItemID)
-                                orderItemData["total"] = float(productObject.price)* float( orderItemData["quantity"])
-                                print(orderItemData)
-                                serializer = OrderItemSerializer(instance= orderItem, data= orderItemData, partial=True)
-                                if serializer.is_valid():
-                                    product_instance = serializer.save()
-                                    data = serial.serialize('json', [product_instance,])
-                                    jsonData = json.loads(data)
-                                    return JsonResponse({"data": [jsonData]})
-                                else:
-                                    return JsonResponse({'error': serializer.errors}, status=400)
-                            else:
-                                 error_message = "There are only " + productObject.quantity + " " + productObject.name + " in inventory"
-                                 return JsonResponse({'error' : error_message}, status = 404)
+                        
                             
                     else:
                         error_message = "No order found with orderID " + orderID  
@@ -215,12 +199,34 @@ class OrderView(APIView):
                             error_message = str(e)
                             return JsonResponse({'orderError': error_message}, status=500)
                             
-   
+            else :
+                print("here")
+                productObject = Product.objects.get(name = request_data["productID"])
+                if productObject.quantity>= request_data["quantity"]:
+                    orderItem =  OrderItem.objects.get(id = orderItemID)
+                    orderItemData = {
+                        "total" : float(productObject.price)* float( request_data["quantity"]),
+                        "quantity" : request_data["quantity"],
+                    }
+                    print(orderItemData)
+                    serializer = OrderItemSerializer(instance= orderItem, data= orderItemData, partial=True)
+                    if serializer.is_valid():
+                        product_instance = serializer.save()
+                        data = serial.serialize('json', [product_instance,])
+                        jsonData = json.loads(data)
+                        return JsonResponse({"data": jsonData[0]["fields"]})
+                    else:
+                        return JsonResponse({'error': serializer.errors}, status=400)
+                else:
+                        error_message = "There are only " + productObject.quantity + " " + productObject.name + " in inventory"
+                        return JsonResponse({'error' : error_message}, status = 404)
 
             
             return JsonResponse({"data": "data"}, status = 200)
 
-            
+
+
+
 
     def delete(self, request, orderID = None, orderItemID = None): 
         if orderID is None:

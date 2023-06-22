@@ -28,7 +28,7 @@ def createOrderItem(detectedOrder, data, order_instance, userObject, total_price
                         totalAmount = float(productdata["price"])* float(detectedOrder[categories][key])
                         data["totalAmount"] =  data["totalAmount"] + totalAmount
                        
-                        orderitem = {"orderID" : order_instance.pk, "productID" : product.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "unAvailable" : False,"outOfStock" : False, "completed" : True, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0.4, 0.9), 2)}
+                        orderitem = {"orderID" : order_instance.pk, "productID" : product.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "unAvailable" : False, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0.4, 0.9), 2)}
                         orderItemSerialized  = OrderItemSerializer(data = orderitem)
                         if orderItemSerialized.is_valid():
                             orderItem_instance=orderItemSerialized.save()
@@ -115,7 +115,7 @@ def updateOrder(detectedOrder,data, order_instance,userObject, total_price):
                             if productdata["quantity"] >= detectedOrder[categories][key]:
                                 totalAmount = float(productdata["price"])* float(detectedOrder[categories][key])
         
-                                orderitemData = {"orderID" : order_instance.pk, "productID" : product.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "unAvailable" : False,"outOfStock" : False, "completed" : True, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0.4, 0.9), 2)}
+                                orderitemData = {"orderID" : order_instance.pk, "productID" : product.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "completed" : True, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0.4, 0.9), 2)}
                                 orderItemSerialized  = OrderItemSerializer(data = orderitemData)
                                 if orderItemSerialized.is_valid():
                                     orderItem_instance=orderItemSerialized.save()

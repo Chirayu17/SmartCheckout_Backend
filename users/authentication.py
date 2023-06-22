@@ -57,6 +57,13 @@ class Permission(BasePermission):
                 return True
             else:
                 return False
+        
+        if view.__class__.__name__ == 'PaymentView':
+            # Only admins have permission for the product API
+            if role == 'user':
+                return True
+            else:
+                return False
 
         if view.__class__.__name__ == 'OrderView':
             # Only users have permission for the orders API

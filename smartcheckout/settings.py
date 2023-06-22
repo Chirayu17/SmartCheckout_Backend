@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+import certifi
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,7 +44,8 @@ INSTALLED_APPS = [
     'users',
     'inventory',
     'orders',
-    'payments'
+    'payments',
+    'images'
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -88,6 +90,7 @@ WSGI_APPLICATION = 'smartcheckout.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
+    'default' : {},
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'smartcheckout',
@@ -95,7 +98,15 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '5432',
-    }
+    },
+    'mongo': {
+        'ENGINE': 'djongo',
+        'NAME': 'mydatabase',
+        'CLIENT': {
+            'host': 'mongodb+srv://cgupta:smartcheckout@cluster0.viwt86t.mongodb.net/?retryWrites=true&w=majority',
+            'tlsCAFile': certifi.where(),
+        }
+    },
 }
 
 
