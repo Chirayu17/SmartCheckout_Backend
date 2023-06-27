@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'inventory',
     'orders',
     'payments',
-    'images'
+    'images',
+    'gridfs_storage'
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -90,7 +91,6 @@ WSGI_APPLICATION = 'smartcheckout.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default' : {},
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'smartcheckout',
@@ -165,3 +165,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SWAGGER_SETTINGS = {
     'DEFAULT_INFO': 'smartcheckout.urls.swagger_info',  # Replace 'your_project' with your actual project name
 }
+
+DATABASE_ROUTERS = [
+    'routers.dbRouter.ImageDBRouter'
+]

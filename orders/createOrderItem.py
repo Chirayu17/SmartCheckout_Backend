@@ -60,18 +60,18 @@ def createOrderItem(detectedOrder, data, order_instance, userObject, total_price
     return order_items
 
 
-def updateOrder(detectedOrder,data, order_instance,userObject, total_price):
+def updateOrder(detectedOrder,existingData, order_instance,userObject, total_price):
         order_items = {}
-        order_items["available"] = data["orderItems"]
+        order_items["available"] = existingData["existingOrderItems"]
         order_items["outOfStock"] = []
         order_items["unavailable"] = []
         itemList = []
-        for existingOrderItems in data["orderItems"]:
+        for existingOrderItems in existingData["existingOrderItems"]:
             itemList.append(existingOrderItems["productID"])
         
         print(itemList)
         
-
+        
         for categories in detectedOrder:  
             for key in detectedOrder[categories]:
                 try:
@@ -114,16 +114,17 @@ def updateOrder(detectedOrder,data, order_instance,userObject, total_price):
                         else:
                             if productdata["quantity"] >= detectedOrder[categories][key]:
                                 totalAmount = float(productdata["price"])* float(detectedOrder[categories][key])
-        
-                                orderitemData = {"orderID" : order_instance.pk, "productID" : product.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "completed" : True, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0.4, 0.9), 2)}
-                                orderItemSerialized  = OrderItemSerializer(data = orderitemData)
+                                orderitemObject = {"orderID" : order_instance.pk, "productID" : product.pk, "productName" : key, "user" : userObject.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : detectedOrder[categories][key], "total" : totalAmount, "completed" : True, "addedManually" : False, "updatedManually" : False, "probability" : round(random.uniform(0.4, 0.9), 2)}
+                                orderItemSerialized  = OrderItemSerializer(data = orderitemObject)
                                 if orderItemSerialized.is_valid():
+                                    print("here")
                                     orderItem_instance=orderItemSerialized.save()
-                                    orderitemData = serial.serialize('json', [orderItem_instance,])
+                                    orderItemData = serial.serialize('json', [orderItem_instance,])
                                     orderItemJsonData = json.loads((orderItemData))[0]
-                                    orderItemJsonData["orderItemID"] = orderItemJsonData["pk"]
-                                    orderItemJsonData["imgSrc"] = productdata["image"]
-                                    order_items["available"].append(orderItemJsonData)
+                                    orderItemJsonData["fields"]["orderItemID"] = orderItemJsonData["pk"]
+                                    orderItemJsonData["fields"]["imgSrc"] = productdata["image"]
+                                    order_items["available"].append(orderItemJsonData["fields"])
+                                    print("orderITems->", order_items)
                 
                                 else:
                                     return JsonResponse({'orderItemDataError': orderItemSerialized.errors})

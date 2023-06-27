@@ -90,31 +90,31 @@ class OrderView(APIView):
             
             #orderItemCreation -->
 
-            request_data = json.loads(request.body)
-            try:
-                image_data = base64.b64decode(request_data["image"])
-            except binascii.Error:
-                return JsonResponse({"error" : "Invalid base64 image"}, status = 400)
+            # request_data = json.loads(request.body)
+            # try:
+            #     image_data = base64.b64decode(request_data["image"])
+            # except binascii.Error:
+            #     return JsonResponse({"error" : "Invalid base64 image"}, status = 400)
             
-            if not image_data:
-                    return JsonResponse({"error" :"Empty decoded image data"}, status = 400)
+            # if not image_data:
+            #         return JsonResponse({"error" :"Empty decoded image data"}, status = 400)
             
-            image_stream = io.BytesIO(image_data)
+            # image_stream = io.BytesIO(image_data)
 
-            image = Image.open(image_stream)        
+            # image = Image.open(image_stream)        
           
-            converted_image = image.convert("RGB")
-            print("type of->", type(converted_image))
+            # converted_image = image.convert("RGB")
+            # print("type of->", type(converted_image))
 
 
             
-            detectedOrder = ImageDetection(converted_image)
-            print("detected Order ->", detectedOrder)
-            if not detectedOrder:
-                data["orderItems"] = "Unable to detect items in image. Try it again"
-                return JsonResponse({"data": data}, status = 400)
-            else:
-                data["orderItems"] = createOrderItem(detectedOrder, data, order_instance, userObject, total_price)
+            # detectedOrder = ImageDetection(converted_image)
+            # print("detected Order ->", detectedOrder)
+            # if not detectedOrder:
+            #     data["orderItems"] = "Unable to detect items in image. Try it again"
+            #     return JsonResponse({"data": data}, status = 400)
+            # else:
+            #     data["orderItems"] = createOrderItem(detectedOrder, data, order_instance, userObject, total_price)
             
           
         return JsonResponse({"data" : data}, status = 200)
@@ -138,7 +138,8 @@ class OrderView(APIView):
                         if "image" in request_data:
                             try:
                                 image_data = base64.b64decode(request_data["image"])
-                                data["orderItems"] = request_data["existingOrderItems"]
+                                existingData = {}
+                                existingData["existingOrderItems"] = request_data["existingOrderItems"]
                             except binascii.Error:
                                 return JsonResponse({"error" : "Invalid base64 image"}, status = 400)
                 
@@ -153,7 +154,7 @@ class OrderView(APIView):
                             detectedOrder = ImageDetection(converted_image)
                             
                             if detectedOrder:
-                                data = updateOrder(detectedOrder, data, orderObject, orderObject.user, 0)
+                                data = updateOrder(detectedOrder, existingData, orderObject, orderObject.user, 0)
                                 return JsonResponse({"data" : data}, status = 200)
                             else: 
                                 data = "Unable to detect items in image. Try it again"
@@ -172,15 +173,23 @@ class OrderView(APIView):
                             if productdata["quantity"] >= orderItem["quantity"]:
                                 totalAmount = float(productdata["price"])* float(orderItem["quantity"])
                                 print("order user->", orderObject.user)
-                                orderItemData = {"orderID" : orderObject.pk, "productID" : productObject.pk,"productName" :  productObject.name, "user" : orderObject.user.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : orderItem["quantity"], "total" : totalAmount, "unAvailable" : False,"outOfStock" : False, "completed" : False }
+                                orderItemData = {"orderID" : orderObject.pk, "productID" : productObject.pk,"productName" :  productObject.name, "user" : orderObject.user.pk, "created_at" : datetime.datetime.now(), "price" : productdata["price"], "quantity" : orderItem["quantity"], "total" : totalAmount, "completed" : False }
 
                                 orderItemSerialized  = OrderItemSerializer(data = orderItemData)
                                 if orderItemSerialized.is_valid():
                                     orderItem_instance=orderItemSerialized.save()
 
                                     orderItemJson = serial.serialize('json', [orderItem_instance,])
-                                    orderItemJsonData = json.loads(orderItemJson)
+                                    print("orderrrrrrrrrr",orderItemJson)
+                                    newOrderItemJson = json.loads(orderItemJson)
+                                    
+                                    orderItemJsonData = newOrderItemJson[0]["fields"]
+
+                                   
+                                    orderItemJsonData["imgSrc"] = productdata["image"]
+                                    orderItemJsonData["orderItemID"] = newOrderItemJson[0]["pk"]
                                     data["available"] = orderItemJsonData
+                                    return JsonResponse({"data": data}, status = 200)
 
                                 else:
                                     return JsonResponse({'orderItemDataError': orderItemSerialized.errors}, status = 200)
@@ -200,9 +209,9 @@ class OrderView(APIView):
                             return JsonResponse({'orderError': error_message}, status=500)
                             
             else :
-                print("here")
                 productObject = Product.objects.get(name = request_data["productID"])
                 if productObject.quantity>= request_data["quantity"]:
+                    print("here in if")
                     orderItem =  OrderItem.objects.get(id = orderItemID)
                     orderItemData = {
                         "total" : float(productObject.price)* float( request_data["quantity"]),
@@ -218,7 +227,8 @@ class OrderView(APIView):
                     else:
                         return JsonResponse({'error': serializer.errors}, status=400)
                 else:
-                        error_message = "There are only " + productObject.quantity + " " + productObject.name + " in inventory"
+                        print("here in else")
+                        error_message = "There are only " + str(productObject.quantity) + " " + productObject.name + " in inventory"
                         return JsonResponse({'error' : error_message}, status = 404)
 
             
@@ -234,8 +244,12 @@ class OrderView(APIView):
             return JsonResponse({'orderError': error_message}, status=500)
         else:
             if orderItemID is None:
-                error_message = "Provide orderItem ID"
-                return JsonResponse({'orderItemError': error_message}, status=500)
+                print("here")
+                result = OrderItem.objects.filter(orderID=orderID).delete()
+                if result[0] > 0:
+                        return JsonResponse({'message': "order item deleted successfully"}, status= 200)
+                else:
+                        return JsonResponse({'error': "Unable to find item"}, status= 404)
             else:
                 try:
                     result = OrderItem.objects.filter(id=orderItemID).delete()
