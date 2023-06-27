@@ -72,7 +72,7 @@ class Permission(BasePermission):
             else:
                 return False
 
-        if view.__class__.__name__ == 'OrderView':
+        if view.__class__.__name__ == 'CartView':
             # Only users have permission for the orders API
             if role == 'user':
                 return True

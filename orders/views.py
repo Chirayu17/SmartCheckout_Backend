@@ -24,7 +24,7 @@ import random
 
 
 
-class OrderView(APIView):
+class CartView(APIView):
     @authentication_classes(TokenAuthentication)
     @permission_classes(Permission)
 
@@ -75,7 +75,7 @@ class OrderView(APIView):
             total_price = 0
 
             
-            orderObject = {"user" : userObject.pk, "completed" :  False, "created_at" : datetime.datetime.now(), "total" : 0 }
+            orderObject = {"user" : userObject.pk, "completed" :  False, "created_at" : datetime.datetime.now(), "modified_at" : datetime.datetime.now(),  "total" : 0 }
             orderserialized  = OrderSerializer(data = orderObject)
             orderData = {}
 
