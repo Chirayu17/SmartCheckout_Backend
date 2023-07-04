@@ -47,7 +47,7 @@ def signup(request):
     if request.path == '/signup/admin/': 
         try:
             data = request.data if request.data is not None else {}
-            required_fields = set(['name', 'email', 'password', 'phoneNumber',])
+            required_fields = set(['name', 'email', 'password', 'phoneNumber','username'])
             if not required_fields.issubset(data.keys()):
                 return JsonResponse(status=400, data={'error': 'Missing required fields'})
             existing_user = admin_user.objects.filter(Q(phoneNumber=data['phoneNumber']) | Q(email=data['email']))
@@ -61,6 +61,7 @@ def signup(request):
                 'isActive' : True,
                 'email': data['email'],
                 'password': str(password_hash),
+                'username' : data['username']
             }
             serializer = admin_userSerializer(data = admin_userData)
             if serializer.is_valid():
@@ -69,7 +70,7 @@ def signup(request):
             else:
                 return JsonResponse({'error': serializer.error})
 
-            token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'admin'} , JWT_SECRET)
+            token = jwt.encode({'username': data['username'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'admin'} , JWT_SECRET)
             return JsonResponse(status=status.HTTP_201_CREATED, data={'token': token, 'statusText': 'User Created'})
 
         except Exception as e:
@@ -90,7 +91,7 @@ def signup(request):
                 'created_at' : datetime.now,
                 'isActive' : True,
                 'email': data['email'],
-                'password': str(password_hash),
+                'password': str(password_hash)
             }
             serializer = CashierSerializer(data = cashierData)
             if serializer.is_valid():
@@ -189,13 +190,13 @@ def login(request):
     elif request.path == '/auth/admin/login': 
         try:
             data = request.data if request.data is not None else {}
-            required_fields = set(['password', 'phoneNumber'])
+            required_fields = set(['password', 'username'])
             if not required_fields.issubset(data.keys()):
                 return JsonResponse(status=400, data={'error': 'Missing required fields'})
-            user = admin_user.objects.get(phoneNumber= data['phoneNumber'])
+            user = admin_user.objects.get(username= data['username'])
             print((user))
             if user and pbkdf2_sha256.verify(data['password'], user.password):
-                token = jwt.encode({'phoneNumber': data['phoneNumber'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'admin'} , JWT_SECRET)
+                token = jwt.encode({'username': data['username'], 'exp': datetime.utcnow() + timedelta(hours=1), 'role' : 'admin'} , JWT_SECRET)
                 return JsonResponse(status=200, data={'token': token})
             else:
                 return JsonResponse(status=401, data={'error': 'Invalid phoneNumber or password'})

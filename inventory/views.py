@@ -4,7 +4,7 @@ from users.authentication import TokenAuthentication, Permission
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from inventory.models import Category, Product
 import json
-from django.views.decorators.csrf import csrf_exempt
+# from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import  authentication_classes,permission_classes
 from inventory.productSerializers import ProductSerializer, CategorySerializer
 from django.core import serializers as serial
@@ -15,6 +15,10 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 import io
 import psycopg2
+from django.core.paginator import Paginator
+from django.forms.models import model_to_dict
+
+
 # Create your views here.
 
 
@@ -23,32 +27,8 @@ class ProductView(APIView):
     @authentication_classes(TokenAuthentication)
     @permission_classes(Permission)
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                name='category_name',
-                in_=openapi.IN_QUERY,
-                description='Filter by category name',
-                type=openapi.TYPE_STRING
-            ),
-            openapi.Parameter(
-                name='subCategory_name',
-                in_=openapi.IN_QUERY,
-                description='Filter by subcategory name',
-                type=openapi.TYPE_STRING
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description='OK',
-                schema=CategorySerializer(many=True)
-            ),
-            404: 'Not Found',
-            500: 'Internal Server Error'
-        }
-    )
-
     def get(self, request, categoryName = None, subCategoryName = None):
+        data = {}
         if request.path == '/inventory/category':
             try:
                 categories = Category.objects.all()
@@ -57,41 +37,77 @@ class ProductView(APIView):
                     return JsonResponse({'error': error_message}, status=404)
                 
                 category_serializer = CategorySerializer(categories, many=True)
-                data = category_serializer.data
-                return JsonResponse(data, content_type='application/json', status=200, safe=False)
+                objects = category_serializer.data
 
             except Exception as e:
                 error_message = str(e)
                 return JsonResponse({'error': error_message}, status=500)
+        elif request.path == '/inventory/products':
+            try:
+                products = Product.objects.all()
+                if not products:
+                    error_message = "No product found."
+                    return JsonResponse({'error': error_message}, status=404)
+                
+                product_serializer = ProductSerializer(products, many=True)
+                objects = product_serializer.data
+             
 
+            except Exception as e:
+                error_message = str(e)
+                return JsonResponse({'error': error_message}, status=500)
         
         elif categoryName is not None:
             try:
-                category = Category.objects.filter(parent_category =categoryName)
-                if not category:
+                categories = Category.objects.filter(parent_category =categoryName)
+                if not categories:
                     error_message = "No categories found."
                     return JsonResponse({'error': error_message}, status=404)
                 
-                category_serializer = CategorySerializer(category, many = True)
-                data = category_serializer.data
-                return JsonResponse(data, content_type='application/json', status=200, safe=False)
+                category_serializer = CategorySerializer(categories, many = True)
+                objects = category_serializer.data
+    
             except Exception as e:
                 error_message = str(e)
                 return JsonResponse({'error': error_message}, status=500)
         
         elif subCategoryName is not None:
             try:
-                product = Product.objects.filter(categories = subCategoryName)
-                if not product:
+                products = Product.objects.filter(categories = subCategoryName)
+                if not products:
                     error_message = "No product found."
                     return JsonResponse({'error': error_message}, status=404)
                 
-                product_serializer = ProductSerializer(product, many = True)
-                data = product_serializer.data
-                return JsonResponse(data, content_type='application/json', status=200, safe=False)
+                product_serializer = ProductSerializer(products, many = True)
+                objects = product_serializer.data
+    
             except Exception as e:
                 error_message = str(e)
                 return JsonResponse({'error': error_message}, status=500)
+            
+        objects_per_page = request.GET.get('page_size', 10)
+        paginator = Paginator(objects, objects_per_page)
+        page_number = request.GET.get('page', 1)
+        page_objects = paginator.get_page(page_number)
+        object_list = list(page_objects.object_list)
+        object_list_serialized = []
+        for object in object_list:
+            print("object->", object)
+            object_list_serialized.append(object)
+            # print(object_list_serialized)
+        response_data = {
+            'results': object_list_serialized,
+            'count': paginator.count,
+            'num_pages': paginator.num_pages,
+            'page_range': list(paginator.page_range),
+            'has_previous': page_objects.has_previous(),
+            'has_next': page_objects.has_next(),
+            'previous_page_number': page_objects.previous_page_number() if page_objects.has_previous() else None,
+            'next_page_number': page_objects.next_page_number() if page_objects.has_next() else None,
+        }
+        print("respone data->", type(response_data))
+        return JsonResponse(response_data, content_type='application/json', status=200, safe=False)
+
 
         
     
@@ -199,13 +215,17 @@ class ProductView(APIView):
             if 'name' in request_data:
                 product_data['name'] = request_data['name']
 
-            if 'isActive' in request_data:
+            elif 'isActive' in request_data:
                 product_data['isActive'] = request_data['isActive']
-            if 'quantity' in request_data:
+            elif 'quantity' in request_data:
                 product_data['quantity'] = request_data['quantity']
-            if 'price' in request_data:
+            elif 'price' in request_data:
                 product_data['price'] = request_data['price']
-                
+            elif 'probability' in request_data:
+                product_data['probability'] = request_data['probability']  
+            elif "categories" in request_data:
+                category_instance = Category.objects.get(name=request_data['categories'] )
+                product_data["categories"] = [category_instance.pk]
 
             if 'image' in request_data:
                 try:

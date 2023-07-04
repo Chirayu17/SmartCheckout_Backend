@@ -29,4 +29,4 @@ class admin_user(models.Model):
     isActive = models.BooleanField(null= False, default=True)
     email = models.CharField(max_length=256,null = False, unique= True)
     password = models.CharField(max_length=256,null = False)
-    
+    username = models.CharField(max_length=256,null = False, default= " ")

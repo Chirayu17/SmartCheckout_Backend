@@ -44,7 +44,22 @@ class PaymentView(APIView):
             paymentJsonData["fields"]["paymentID"] = paymentJsonData["pk"]
             data["payment"] = paymentJsonData["fields"]
 
+            order = Orders.objects.filter(orderID = request_data["orderID"])
+            order_data = {}
+            order_data["completed"] = True
+            serializer = OrderSerializer(instance=order, data=order_data, partial=True)
+            if serializer.is_valid():
+                order_instance = serializer.save()
+                data = serial.serialize('json', [order_instance,])
+                return JsonResponse({"data": data})
+            else:
+                print("Couldn't update Order")
+                # return JsonResponse({'error': serializer.errors}, status=400)
+
+
             orderItems = OrderItem.objects.filter(orderID = request_data["orderID"])
+
+            
 
             orderItem_serializer = OrderItemSerializer(orderItems, many = True)
             orderItemObject = orderItem_serializer.data

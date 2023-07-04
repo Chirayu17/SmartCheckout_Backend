@@ -28,6 +28,9 @@ class TokenAuthentication(BaseAuthentication):
         except jwt.exceptions.InvalidTokenError as e:
             print(e)
             raise AuthenticationFailed('Invalid token')
+        if 'username' in data:
+            print("here")
+            return(data['username'], None)
         return (data['phoneNumber'], None)
     
     

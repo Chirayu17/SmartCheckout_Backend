@@ -32,14 +32,13 @@ class OrderView(APIView):
     def get(self, request, orderID = None):
         data = {}
         if orderID is None:
-            orders = Orders.objects.filter(user =  request.user)
-            if not orders:
-                    error_message = "No order found."
-                    return JsonResponse({'error': error_message}, status=404)
-                
-            order_serializer = OrderSerializer(orders, many = True)
-            data = order_serializer.data
-            return JsonResponse(data, content_type='application/json', status=200, safe=False)
+            latest_order = Orders.objects.filter(user=request.user, completed=False).order_by('-created_at').first()
+            if latest_order:
+                order_serializer = OrderSerializer(latest_order, many = True)
+                data = order_serializer.data
+                return JsonResponse(data, content_type='application/json', status=200, safe=False)
+            else:
+                return JsonResponse({"message" : "No order found"})
         else:
             orders = Orders.objects.filter(orderID = orderID,user =  request.user)
             if not orders:

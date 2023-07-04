@@ -35,10 +35,10 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'corsheaders',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'drf_yasg',
     'rest_framework',
     'users',
@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'gridfs_storage'
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
 
 
 MIDDLEWARE = [
@@ -59,9 +58,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware'
 ]
+CORS_ORIGIN_ALLOW_ALL = True
 
 CSRF_COOKIE_SECURE = False
 
