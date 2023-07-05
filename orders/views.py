@@ -16,13 +16,13 @@ import binascii
 from drf_yasg import openapi
 from orders.models import OrderItem, Orders
 from users.models import User
-from orders.dataModel import ImageDetection
+# from orders.dataModel import ImageDetection
 import io
 from PIL import Image
 from orders.createOrderItem import createOrderItem, updateOrder
 import random
-
-
+# from ImageDetection.main import ProcessImage
+from DataScience.processImage import ProcessImage
 
 class OrderView(APIView):
     @authentication_classes(TokenAuthentication)
@@ -126,6 +126,7 @@ class OrderView(APIView):
             return JsonResponse({'orderError': error_message}, status=500)
 
         else:
+            print("In else")
             request_data = json.loads(request.body)
             if orderItemID is None:
                 data = {}
@@ -135,6 +136,7 @@ class OrderView(APIView):
                     if orderObject: 
                         
                         if "image" in request_data:
+                            print("here")
                             try:
                                 image_data = base64.b64decode(request_data["image"])
                                 existingData = {}
@@ -150,14 +152,29 @@ class OrderView(APIView):
                             image = Image.open(image_stream)        
                             converted_image = image.convert("RGB")
 
-                            detectedOrder = ImageDetection(converted_image)
+                            # detectedOrder = ImageDetection(converted_image)
                             
-                            if detectedOrder:
-                                data = updateOrder(detectedOrder, existingData, orderObject, orderObject.user, 0)
-                                return JsonResponse({"data" : data}, status = 200)
-                            else: 
+                            # if detectedOrder:
+                            #     data = updateOrder(detectedOrder, existingData, orderObject, orderObject.user, 0)
+                            #     return JsonResponse({"data" : data}, status = 200)
+                            # else: 
+                            #     data = "Unable to detect items in image. Try it again"
+                            #     return JsonResponse({"data" : data}, status = 404)
+
+                            process_image = ProcessImage(request_data["image"])
+                            processed_image = process_image.run()
+                            print(processed_image)
+                            if processed_image is not None:
+                                # Print the results or perform further processing
+                                # for elements in processed_image:
+                                #     print("elements->", elements)
+                                data = updateOrder(processed_image, existingData, orderObject, orderObject.user, 0)
+                                # print("data->", data)
+                                return JsonResponse(data, status = 200,safe= False)
+                            else:
                                 data = "Unable to detect items in image. Try it again"
-                                return JsonResponse({"data" : data}, status = 404)
+                                return JsonResponse({"data" : data}, status = 404, safe= False)
+
                             
 
                        
