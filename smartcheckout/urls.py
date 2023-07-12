@@ -31,6 +31,5 @@ urlpatterns = [
     path('auth/', include('users.userUrls')),
     path('inventory/', include('inventory.productUrls')),
     path('orders/', include('orders.orderUrls')),
-    path('payments/', include('payments.paymentUrls')),
-    path('images/', include('images.imageUrls'))
+    path('payments/', include('payments.paymentUrls'))
 ]

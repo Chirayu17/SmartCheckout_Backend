@@ -44,9 +44,7 @@ INSTALLED_APPS = [
     'users',
     'inventory',
     'orders',
-    'payments',
-    'images',
-    'gridfs_storage'
+    'payments'
 ]
 
 

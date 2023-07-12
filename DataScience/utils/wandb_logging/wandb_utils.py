@@ -7,9 +7,9 @@ import yaml
 from tqdm import tqdm
 
 sys.path.append(str(Path(__file__).parent.parent.parent))  # add utils/ to path
-from DataScience..datasets import LoadImagesAndLabels
-from DataScience..datasets import img2label_paths
-from DataScience..general import colorstr, xywh2xyxy, check_dataset, check_file
+from DataScience.utils.datasets import LoadImagesAndLabels
+from DataScience.utils.datasets import img2label_paths
+from DataScience.utils.general import colorstr, xywh2xyxy, check_dataset, check_file
 
 try:
     import wandb
